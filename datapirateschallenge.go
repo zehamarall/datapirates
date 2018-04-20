@@ -46,7 +46,7 @@ func fetch(url string) (*goquery.Document, error) {
 func GetListAllGenre(doc *goquery.Document) (map[string]string, error) {
 	listGenre := make(map[string]string)
 
-	doc.Find(".aux-content-widget-2 .subnav_item_main").Each(func(i int, s *goquery.Selection) {
+	doc.Find("subnav_item_main").Each(func(i int, s *goquery.Selection) {
 		linkTag := s.Find("a")
 		link, _ := linkTag.Attr("href")
 		genre := strings.TrimSpace(s.Find("a").Text())
@@ -67,7 +67,8 @@ func getGenreRating(page int, genre string, url string) error {
 		return err
 	}
 
-	doc.Find(".lister-list .lister-item.mode-advanced .lister-item-content").Each(func(i int, s *goquery.Selection) {
+	doc.Find("lister-item-header").Each(func(i int, s *goquery.Selection) {
+
 		rating := strings.TrimSpace(s.Find("h3 span").First().Text())
 		name := strings.TrimSpace(s.Find("h3 a").Text())
 		movie := Movie{
@@ -78,10 +79,10 @@ func getGenreRating(page int, genre string, url string) error {
 		json.NewEncoder(fileWriter).Encode(movie)
 	})
 
-	doc.Find("div.desc a.lister-page-next.next-page").EachWithBreak(func(i int, s *goquery.Selection) bool {
+	doc.Find("lister-page-next.next-page").EachWithBreak(func(i int, s *goquery.Selection) bool {
 		str, exists := s.Attr("href")
 		if exists {
-			//Limit 500 films rating
+			//Limit 500 films rating, 50 itens per page
 			if page < 9 {
 				page++
 				urlNext := "http://www.imdb.com/search/title/" + str
