@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"sync"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -63,7 +62,7 @@ func getGenreRating(page int, genre string, url string) error {
 		return err
 	}
 
-	fileWriter, err := os.OpenFile("./bin/"+genre+".jsonl", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	fileWriter, err := os.OpenFile("./data/"+genre+".jsonl", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -109,20 +108,26 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	var wg sync.WaitGroup
+	//var wg sync.WaitGroup
 
 	for genre, link := range listGenre {
-		wg.Add(1)
+		//wg.Add(1)
 
 		go func(genre string, link string) {
-			defer wg.Done()
+			//defer wg.Done()
 
 			err := getGenreRating(0, genre, "http://www.imdb.com"+link)
 			if err != nil {
 				log.Println(err)
 			}
+			log.Printf("finished list of %s on jsonl\n", genre)
 		}(genre, link)
 	}
-	wg.Wait()
+	err = http.ListenAndServe(":8080", http.FileServer(http.Dir("./data")))
+
+	if err != nil {
+		log.Println("could not listen port 8080 ", err)
+	}
+	log.Println("starting file server on localhost:8080")
+	//wg.Wait()
 }
